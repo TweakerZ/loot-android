@@ -2,7 +2,7 @@
 
 A small Android front-end for [LOOT](https://loot.github.io/) aimed at the
 Skyrim Legendary Edition static Android port and the
-[DroidModLoader](../DroidModLoader) fork.
+Skyrim Mod Loader.
 
 The app asks for:
 
