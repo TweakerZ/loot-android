@@ -1,8 +1,9 @@
 # LOOT Android (Skyrim LE)
 
 A small Android front-end for [LOOT](https://loot.github.io/) aimed at the
-Skyrim Legendary Edition static Android port and the
-Skyrim Mod Loader.
+Skyrim Legendary Edition static Android port and
+[Skyrim Mod Loader](https://github.com/TweakerZ/Skyrim-Mod-Loader), a fork of
+DroidModLoader.
 
 ## Disclaimer
 
@@ -26,7 +27,8 @@ It then provides two actions:
 
 ## Skyrim LE layout
 
-Skyrim Mod Loader and the static port conventionally use:
+[Skyrim Mod Loader](https://github.com/TweakerZ/Skyrim-Mod-Loader) and the
+static port conventionally use:
 
 ```
 <port>/
