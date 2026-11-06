@@ -4,6 +4,12 @@ A small Android front-end for [LOOT](https://loot.github.io/) aimed at the
 Skyrim Legendary Edition static Android port and the
 Skyrim Mod Loader.
 
+## Disclaimer
+
+Yes.. AI was used in building this. The code and APKs are provided as-is, with
+no warranty. Review the code, keep backups of `Plugins.txt` and `loadorder.txt`,
+and use it at your own risk.
+
 The app asks for:
 
 1. the game (Skyrim Legendary Edition),
@@ -20,7 +26,7 @@ It then provides two actions:
 
 ## Skyrim LE layout
 
-DroidModLoader and the static port conventionally use:
+Skyrim Mod Loader and the static port conventionally use:
 
 ```
 <port>/
@@ -35,8 +41,8 @@ DroidModLoader and the static port conventionally use:
 
 The app auto-detects `save/AppData/Local/Skyrim` after the port folder is
 selected. It writes plain plugin names, one per line, with no `*` prefix, to
-match DML. `Plugins.txt` contains active plugins only; `loadorder.txt` contains
-the complete order.
+match Skyrim Mod Loader. `Plugins.txt` contains active plugins only;
+`loadorder.txt` contains the complete order.
 
 ## Why all-files access is required
 
@@ -114,7 +120,7 @@ download branch in step with the bundled libloot version.
 
 ## UI style
 
-The interface follows DroidModLoader's dark Material design: a near-black
+The interface follows Skyrim Mod Loader's dark Material design: a near-black
 background, raised surface cards, rounded buttons, and the Skyrim Nordic
 accent palette. The launcher icon is the official LOOT treasure-chest logo
 (from `loot/loot/resources/icons/loot.svg`) shipped as an adaptive icon.
