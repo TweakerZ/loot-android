@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LOOT Android</string>
+    <string name="app_subtitle">Skyrim Legendary Edition · DroidModLoader / static Android port</string>
+
+    <!-- Storage -->
+    <string name="storage_checking">Checking storage access…</string>
+    <string name="storage_granted">All-files access granted. LOOT can read and write game files directly.</string>
+    <string name="storage_missing">All-files access is required. libloot needs real filesystem paths, not SAF URIs.</string>
+    <string name="btn_grant_storage">Grant all-files access</string>
+
+    <!-- Game -->
+    <string name="label_game">Game</string>
+    <string name="game_skyrim_le">The Elder Scrolls V: Skyrim (Legendary Edition)</string>
+
+    <!-- Folder and files -->
+    <string name="label_game_folder">Game folder (port root)</string>
+    <string name="hint_game_folder">The folder containing Data. The Skyrim port usually stores Plugins.txt and loadorder.txt under save/AppData/Local/Skyrim.</string>
+    <string name="label_plugins_file">Plugins.txt</string>
+    <string name="hint_plugins_file">Active plugins. DML writes one plugin name per line, with no * prefix.</string>
+    <string name="label_loadorder_file">loadorder.txt</string>
+    <string name="hint_loadorder_file">Complete plugin order, including disabled plugins.</string>
+    <string name="btn_select">Select</string>
+    <string name="msg_not_selected">Not selected</string>
+
+    <!-- Actions -->
+    <string name="btn_sort_loot">LOOT Sort</string>
+    <string name="btn_view_logs">LOOT Logs</string>
+    <string name="label_loot_logs">Last sort</string>
+    <string name="logs_empty">No sort has run yet.</string>
+    <string name="summary_empty">Select the game folder, Plugins.txt, and loadorder.txt to begin.</string>
+    <string name="status_ready">Ready.</string>
+    <string name="status_sorting">Sorting with LOOT…</string>
+    <string name="status_sorted">Load order sorted and written.</string>
+    <string name="status_failed">Sort failed.</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_path_title">Filesystem path</string>
+    <string name="dialog_path_message">This picker did not expose a real filesystem path. Enter the path on shared storage instead.</string>
+    <string name="dialog_path_hint">/storage/emulated/0/Skyrim</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_logs_title">LOOT log</string>
+    <string name="dialog_logs_empty">No log is available yet.</string>
+    <string name="dialog_close">Close</string>
+</resources>

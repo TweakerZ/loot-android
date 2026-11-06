@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark window / background (Skyrim Nordic palette, DML style) -->
+    <color name="loot_window_background">#FF05070A</color>
+    <color name="loot_background">#FF05070A</color>
+    <color name="loot_backgroundRaised">#FF0B1015</color>
+
+    <color name="loot_surface">#FF111820</color>
+    <color name="loot_surfaceRaised">#FF18222D</color>
+    <color name="loot_surfacePanel">#FF22303C</color>
+    <color name="loot_buttonSurface">#FF263542</color>
+
+    <color name="loot_borderDim">#FF3A4856</color>
+    <color name="loot_borderHot">#FF8FB6D9</color>
+    <color name="loot_glow">#FFA7D8FF</color>
+
+    <color name="loot_primary">#FFAED2EC</color>
+    <color name="loot_primarySoft">#FF7EAACB</color>
+    <color name="loot_primaryDark">#FF1E3B52</color>
+    <color name="loot_primaryButton">#FF2B5878</color>
+
+    <color name="loot_amber">#FFD1B06A</color>
+    <color name="loot_green">#FF83C995</color>
+
+    <color name="loot_text">#FFE8EEF2</color>
+    <color name="loot_textMuted">#FFB4C0C8</color>
+    <color name="loot_textDim">#FF7D8A94</color>
+
+    <!-- Legacy names referenced by the layout -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="purple_500">#FFAED2EC</color>
+    <color name="purple_700">#FF1E3B52</color>
+    <color name="teal_200">#FFA7D8FF</color>
+    <color name="teal_700">#FF2B5878</color>
+    <color name="banner_background">#FF111820</color>
+    <color name="log_background">#FF0B1015</color>
+    <color name="log_text">#FFE8EEF2</color>
+</resources>

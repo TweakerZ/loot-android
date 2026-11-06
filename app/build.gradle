@@ -1,0 +1,73 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.chaquo.python'
+}
+
+android {
+    namespace 'com.lootandroid'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.lootandroid'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '0.1.0'
+
+        ndk {
+            // libloot is cross-compiled for 64-bit ARM Android only.
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+// Chaquopy requires a build-time Python with the same major/minor version as
+// the app runtime. The host's default Python may be newer, so allow pointing
+// at a 3.13 interpreter explicitly (see README).
+def lootBuildPython = System.getenv('LOOT_BUILD_PYTHON')
+
+chaquopy {
+    defaultConfig {
+        version = '3.13'
+        if (lootBuildPython) {
+            buildPython lootBuildPython
+        }
+
+        pip {
+            // The libloot Android wheel lives in app/src/main/wheels.
+            // See app/src/main/wheels/README.md for how to rebuild it.
+            options('--find-links', file('src/main/wheels').absolutePath)
+            install 'libloot'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+}
