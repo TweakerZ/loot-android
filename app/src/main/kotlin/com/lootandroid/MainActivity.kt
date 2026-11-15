@@ -5,19 +5,21 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
-import com.lootandroid.databinding.ActivityMainBinding
+import com.skyrimsuite.ui.theme.SkyrimSuiteTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,11 +27,8 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityMainBinding
 
     private val prefs by lazy { getSharedPreferences(PREFS, MODE_PRIVATE) }
     private val masterlistRepository by lazy { MasterlistRepository(this) }
@@ -37,6 +36,20 @@ class MainActivity : AppCompatActivity() {
     private val sessionLog = StringBuilder()
     private var lastSortLog: String? = null
     private var pendingFileTarget: FileTarget? = null
+
+    /* Compose-observed state */
+    private var gameFolder by mutableStateOf<String?>(null)
+    private var pluginsPath by mutableStateOf<String?>(null)
+    private var loadorderPath by mutableStateOf<String?>(null)
+    private var storageGranted by mutableStateOf(false)
+    private var statusText by mutableStateOf("")
+    private var pluginsFound by mutableStateOf(0)
+    private var activeCount by mutableStateOf(0)
+    private var loadorderCount by mutableStateOf(0)
+    private var missingActive by mutableStateOf<List<String>>(emptyList())
+    private var busy by mutableStateOf(false)
+    private var logText by mutableStateOf("")
+    private var logExpanded by mutableStateOf(false)
 
     private enum class FileTarget { PLUGINS, LOADORDER }
 
@@ -78,35 +91,39 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        statusText = getString(R.string.status_ready)
 
-        binding.spGame.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf(getString(R.string.game_skyrim_le))
-        )
-
-        binding.btnStoragePermission.setOnClickListener {
-            StoragePaths.requestAllFilesAccess(this)
+        setContent {
+            SkyrimSuiteTheme {
+                LootScreen(
+                    gameFolder = gameFolder,
+                    pluginsPath = pluginsPath,
+                    loadorderPath = loadorderPath,
+                    storageGranted = storageGranted,
+                    statusText = statusText,
+                    pluginsFound = pluginsFound,
+                    activeCount = activeCount,
+                    loadorderCount = loadorderCount,
+                    missingActive = missingActive,
+                    busy = busy,
+                    logText = logText,
+                    logExpanded = logExpanded,
+                    onPickGameFolder = { directoryPicker.launch(null) },
+                    onPickPlugins = {
+                        pendingFileTarget = FileTarget.PLUGINS
+                        filePicker.launch(arrayOf("*/*"))
+                    },
+                    onPickLoadorder = {
+                        pendingFileTarget = FileTarget.LOADORDER
+                        filePicker.launch(arrayOf("*/*"))
+                    },
+                    onGrantStorage = { StoragePaths.requestAllFilesAccess(this) },
+                    onSort = { startSort() },
+                    onViewLogs = { showLogs() },
+                    onToggleLog = { logExpanded = !logExpanded }
+                )
+            }
         }
-
-        binding.btnSelectGameFolder.setOnClickListener {
-            directoryPicker.launch(null)
-        }
-
-        binding.btnSelectPlugins.setOnClickListener {
-            pendingFileTarget = FileTarget.PLUGINS
-            filePicker.launch(arrayOf("*/*"))
-        }
-
-        binding.btnSelectLoadorder.setOnClickListener {
-            pendingFileTarget = FileTarget.LOADORDER
-            filePicker.launch(arrayOf("*/*"))
-        }
-
-        binding.btnSortLoot.setOnClickListener { startSort() }
-        binding.btnViewLogs.setOnClickListener { showLogs() }
 
         restoreSelections()
         refreshStorageStatus()
@@ -132,12 +149,7 @@ class MainActivity : AppCompatActivity() {
     /* ---------- Selection state ---------- */
 
     private fun restoreSelections() {
-        binding.tvGameFolder.text =
-            prefs.getString(PREF_GAME_ROOT, null) ?: getString(R.string.msg_not_selected)
-        binding.tvPluginsPath.text =
-            prefs.getString(PREF_PLUGINS_PATH, null) ?: getString(R.string.msg_not_selected)
-        binding.tvLoadorderPath.text =
-            prefs.getString(PREF_LOADORDER_PATH, null) ?: getString(R.string.msg_not_selected)
+        updatePathViews()
     }
 
     private fun applyGameFolder(picked: File) {
@@ -149,7 +161,7 @@ class MainActivity : AppCompatActivity() {
         val root = resolveGameRoot(picked)
 
         prefs.edit().putString(PREF_GAME_ROOT, root.absolutePath).apply()
-        binding.tvGameFolder.text = root.absolutePath
+        gameFolder = root.absolutePath
         log("Game folder: ${root.absolutePath}")
 
         val dataDir = File(root, "Data")
@@ -248,22 +260,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePathViews() {
-        binding.tvGameFolder.text =
-            prefs.getString(PREF_GAME_ROOT, null) ?: getString(R.string.msg_not_selected)
-        binding.tvPluginsPath.text =
-            prefs.getString(PREF_PLUGINS_PATH, null) ?: getString(R.string.msg_not_selected)
-        binding.tvLoadorderPath.text =
-            prefs.getString(PREF_LOADORDER_PATH, null) ?: getString(R.string.msg_not_selected)
+        gameFolder = prefs.getString(PREF_GAME_ROOT, null)
+        pluginsPath = prefs.getString(PREF_PLUGINS_PATH, null)
+        loadorderPath = prefs.getString(PREF_LOADORDER_PATH, null)
     }
 
     /* ---------- Storage ---------- */
 
     private fun refreshStorageStatus() {
-        val granted = StoragePaths.hasAllFilesAccess(this)
-        binding.tvStorageStatus.text = getString(
-            if (granted) R.string.storage_granted else R.string.storage_missing
-        )
-        binding.btnStoragePermission.visibility = if (granted) View.GONE else View.VISIBLE
+        storageGranted = StoragePaths.hasAllFilesAccess(this)
     }
 
     private fun persistPermission(uri: Uri) {
@@ -281,34 +286,39 @@ class MainActivity : AppCompatActivity() {
     /* ---------- Summary ---------- */
 
     private fun refreshSummary() {
-        val rootPath = prefs.getString(PREF_GAME_ROOT, null) ?: return
-        val pluginsPath = prefs.getString(PREF_PLUGINS_PATH, null)
-        val loadorderPath = prefs.getString(PREF_LOADORDER_PATH, null)
+        val rootPath = gameFolder ?: run {
+            pluginsFound = 0
+            activeCount = 0
+            loadorderCount = 0
+            missingActive = emptyList()
+            return
+        }
+        val currentPlugins = pluginsPath
+        val currentLoadorder = loadorderPath
 
         lifecycleScope.launch {
             val summary = withContext(Dispatchers.IO) {
                 val root = File(rootPath)
                 val dataDir = File(root, "Data")
                 val found = PluginScanner.scanPlugins(dataDir)
-                val active = pluginsPath?.let { PluginScanner.readPluginNames(File(it)) }.orEmpty()
-                val order = loadorderPath?.let { PluginScanner.readPluginNames(File(it)) }.orEmpty()
+                val active = currentPlugins?.let { PluginScanner.readPluginNames(File(it)) }.orEmpty()
+                val order = currentLoadorder?.let { PluginScanner.readPluginNames(File(it)) }.orEmpty()
 
                 val foundKeys = found.map { it.name.lowercase() }.toSet()
-                val missingActive = active.filter { it.lowercase() !in foundKeys }
+                val missing = active.filter { it.lowercase() !in foundKeys }
 
-                buildString {
-                    append("Data: ${if (dataDir.isDirectory) "found" else "missing"} · ")
-                    append("${found.size} plugins · ")
-                    append("${active.size} active · ")
-                    append("${order.size} in loadorder.txt")
-                    if (missingActive.isNotEmpty()) {
-                        append("\nNot installed but listed in Plugins.txt: ")
-                        append(missingActive.joinToString(", "))
-                    }
-                }
+                Summary(
+                    pluginsFound = found.size,
+                    activeCount = active.size,
+                    loadorderCount = order.size,
+                    missingActive = missing
+                )
             }
 
-            binding.tvSummary.text = summary
+            pluginsFound = summary.pluginsFound
+            activeCount = summary.activeCount
+            loadorderCount = summary.loadorderCount
+            missingActive = summary.missingActive
         }
     }
 
@@ -321,9 +331,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val root = prefs.getString(PREF_GAME_ROOT, null)?.let(::File)
-        val pluginsFile = prefs.getString(PREF_PLUGINS_PATH, null)?.let(::File)
-        val loadorderFile = prefs.getString(PREF_LOADORDER_PATH, null)?.let(::File)
+        val root = gameFolder?.let(::File)
+        val pluginsFile = pluginsPath?.let(::File)
+        val loadorderFile = loadorderPath?.let(::File)
 
         if (root == null || !root.isDirectory) {
             toast("Select the Skyrim port folder first")
@@ -343,8 +353,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        setBusy(true)
-        binding.tvStatus.text = getString(R.string.status_sorting)
+        updateBusy(true)
+        statusText = getString(R.string.status_sorting)
         log("Starting LOOT sort")
         log("Data: ${dataDir.absolutePath}")
         log("Plugins.txt: ${pluginsFile.absolutePath}")
@@ -355,19 +365,18 @@ class MainActivity : AppCompatActivity() {
                 performSort(root, dataDir, pluginsFile, loadorderFile)
             }
 
-            setBusy(false)
+            updateBusy(false)
             if (outcome.success) {
-                binding.tvStatus.text = getString(R.string.status_sorted)
+                statusText = getString(R.string.status_sorted)
                 log(outcome.message)
                 toast(outcome.message)
             } else {
-                binding.tvStatus.text = getString(R.string.status_failed)
+                statusText = getString(R.string.status_failed)
                 log("FAILED: ${outcome.message}")
                 toast(outcome.message)
                 if (outcome.log != null) {
                     lastSortLog = outcome.log
                     saveLastLog(outcome.log)
-                    showInlineLog(outcome.log)
                 }
             }
             refreshSummary()
@@ -551,13 +560,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setBusy(busy: Boolean) {
-        binding.progressSort.visibility = if (busy) View.VISIBLE else View.GONE
-        binding.btnSortLoot.isEnabled = !busy
-        binding.btnSelectGameFolder.isEnabled = !busy
-        binding.btnSelectPlugins.isEnabled = !busy
-        binding.btnSelectLoadorder.isEnabled = !busy
-        binding.btnViewLogs.isEnabled = !busy
+    private fun updateBusy(value: Boolean) {
+        busy = value
     }
 
     /* ---------- Logs ---------- */
@@ -599,25 +603,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveLastLog(log: String) {
         runCatching { File(filesDir, LAST_LOG_NAME).writeText(log) }
-        showInlineLog(log)
-    }
-
-    private fun showInlineLog(log: String) {
-        binding.tvLogs.text = log.takeLast(4000)
-        binding.tvLogs.post {
-            val lineCount = binding.tvLogs.lineCount
-            val layout = binding.tvLogs.layout
-            if (lineCount > 0 && layout != null) {
-                val scrollAmount = layout.getLineBottom(lineCount - 1) - binding.tvLogs.height
-                binding.tvLogs.scrollTo(0, scrollAmount.coerceAtLeast(0))
-            }
-        }
+        logExpanded = true
     }
 
     private fun log(message: String) {
         val timestamp = SimpleDateFormat("HH:mm:ss", Locale.ROOT).format(Date())
         sessionLog.append("[$timestamp] ").append(message).append('\n')
-        binding.tvLogs.text = sessionLog.takeLast(4000)
+        logText = sessionLog.toString()
     }
 
     /* ---------- Manual path fallback ---------- */
@@ -656,7 +648,7 @@ class MainActivity : AppCompatActivity() {
     private fun suggestPath(): String = "/storage/emulated/0/"
 
     private fun suggestPath(target: FileTarget): String {
-        val root = prefs.getString(PREF_GAME_ROOT, null)
+        val root = gameFolder
         val base = root ?: suggestPath()
         return when (target) {
             FileTarget.PLUGINS -> "$base/save/AppData/Local/Skyrim/Plugins.txt"
@@ -683,6 +675,13 @@ class MainActivity : AppCompatActivity() {
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
+
+    private data class Summary(
+        val pluginsFound: Int,
+        val activeCount: Int,
+        val loadorderCount: Int,
+        val missingActive: List<String>
+    )
 
     private data class SortOutcome(
         val success: Boolean,

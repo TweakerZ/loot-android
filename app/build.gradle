@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.chaquo.python'
 }
 
@@ -12,8 +13,8 @@ android {
         applicationId 'com.lootandroid'
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 2
+        versionName '0.1.2'
 
         ndk {
             // libloot is cross-compiled for 64-bit ARM Android only.
@@ -38,7 +39,12 @@ android {
     }
 
     buildFeatures {
-        viewBinding true
+        compose true
+    }
+
+    // Shared Material You design system (sibling repository).
+    sourceSets {
+        main.java.srcDirs += rootProject.file('../skyrim-suite-ui/src/main/kotlin')
     }
 }
 
@@ -64,10 +70,21 @@ chaquopy {
 }
 
 dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.10'
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.documentfile:documentfile:1.0.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Compose UI stack. The BOM pins every Compose module version.
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-core'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
 }

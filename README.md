@@ -78,6 +78,9 @@ installed plugins, and returns JSON.
 - Rust with the `aarch64-linux-android` target
 - Python 3.13 on the build machine (Chaquopy uses it for build tooling)
 - `cibuildwheel` (only needed to rebuild the libloot wheel)
+- The shared design system at `../skyrim-suite-ui`. `app/build.gradle` adds
+  `../skyrim-suite-ui/src/main/kotlin` to the Kotlin source set, so a clone
+  needs that directory next to this repository to compile.
 
 ### Rebuild the libloot Android wheel
 
@@ -123,6 +126,7 @@ download branch in step with the bundled libloot version.
 ## UI style
 
 The interface follows Skyrim Mod Loader's dark Material design: a near-black
-background, raised surface cards, rounded buttons, and the Skyrim Nordic
-accent palette. The launcher icon is the official LOOT treasure-chest logo
-(from `loot/loot/resources/icons/loot.svg`) shipped as an adaptive icon.
+background, raised surface cards, rounded buttons, and the Nordic accent
+palette. It is built with Jetpack Compose using the shared component set in
+`../skyrim-suite-ui`. The launcher icon is an adaptive icon with background,
+foreground, and monochrome layers.

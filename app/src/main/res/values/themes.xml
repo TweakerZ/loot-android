@@ -11,7 +11,7 @@
         <item name="android:colorBackground">@color/loot_window_background</item>
         <item name="android:statusBarColor" tools:targetApi="l">@color/loot_window_background</item>
         <item name="android:navigationBarColor">@color/loot_window_background</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>

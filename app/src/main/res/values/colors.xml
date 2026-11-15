@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Dark window / background (Skyrim Nordic palette, DML style) -->
-    <color name="loot_window_background">#FF05070A</color>
+    <color name="loot_window_background">#FFF6FBF7</color>
     <color name="loot_background">#FF05070A</color>
     <color name="loot_backgroundRaised">#FF0B1015</color>
 

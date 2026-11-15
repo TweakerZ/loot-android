@@ -1,23 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LOOT Android</string>
-    <string name="app_subtitle">Skyrim Legendary Edition · DroidModLoader / static Android port</string>
+    <string name="app_subtitle">Skyrim Legendary Edition · Skyrim Mod Loader</string>
 
     <!-- Storage -->
     <string name="storage_checking">Checking storage access…</string>
     <string name="storage_granted">All-files access granted. LOOT can read and write game files directly.</string>
     <string name="storage_missing">All-files access is required. libloot needs real filesystem paths, not SAF URIs.</string>
     <string name="btn_grant_storage">Grant all-files access</string>
+    <string name="storage_permission_title">Storage access needed</string>
+
+    <!-- Header chips -->
+    <string name="chip_storage_granted">Storage OK</string>
+    <string name="chip_storage_missing">No storage access</string>
+    <string name="chip_plugins">%1$d plugins</string>
+    <string name="chip_active">%1$d active</string>
 
     <!-- Game -->
     <string name="label_game">Game</string>
     <string name="game_skyrim_le">The Elder Scrolls V: Skyrim (Legendary Edition)</string>
+    <string name="game_skyrim_le_short">Skyrim LE</string>
+
+    <!-- Overview -->
+    <string name="label_overview">Load order overview</string>
+    <string name="label_plugins_found">Plugins found</string>
+    <string name="label_active_plugins">Active plugins</string>
+    <string name="label_loadorder_count">In loadorder.txt</string>
+    <string name="label_missing_plugins">Listed but not installed</string>
+    <string name="status_hint_ready">LOOT rewrites Plugins.txt and loadorder.txt in the selected game folder.</string>
+    <string name="settings_title">Advanced settings</string>
 
     <!-- Folder and files -->
     <string name="label_game_folder">Game folder (port root)</string>
     <string name="hint_game_folder">The folder containing Data. The Skyrim port usually stores Plugins.txt and loadorder.txt under save/AppData/Local/Skyrim.</string>
     <string name="label_plugins_file">Plugins.txt</string>
-    <string name="hint_plugins_file">Active plugins. DML writes one plugin name per line, with no * prefix.</string>
+    <string name="hint_plugins_file">Active plugins. Skyrim Mod Loader writes one plugin name per line, with no * prefix.</string>
     <string name="label_loadorder_file">loadorder.txt</string>
     <string name="hint_loadorder_file">Complete plugin order, including disabled plugins.</string>
     <string name="btn_select">Select</string>
@@ -29,6 +46,7 @@
     <string name="label_loot_logs">Last sort</string>
     <string name="logs_empty">No sort has run yet.</string>
     <string name="summary_empty">Select the game folder, Plugins.txt, and loadorder.txt to begin.</string>
+    <string name="setup_hint">Open Advanced settings and choose the Skyrim port folder, then Plugins.txt and loadorder.txt. LOOT usually finds both under save/AppData/Local/Skyrim.</string>
     <string name="status_ready">Ready.</string>
     <string name="status_sorting">Sorting with LOOT…</string>
     <string name="status_sorted">Load order sorted and written.</string>
