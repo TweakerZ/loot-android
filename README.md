@@ -1,132 +1,63 @@
 # LOOT Android (Skyrim LE)
 
-A small Android front-end for [LOOT](https://loot.github.io/) aimed at the
-Skyrim Legendary Edition static Android port and
-[Skyrim Mod Loader](https://github.com/TweakerZ/Skyrim-Mod-Loader), a fork of
-DroidModLoader.
+Sorts Skyrim Legendary Edition plugin load orders with the real LOOT engine.
+Companion app for [Skyrim Mod Loader](https://github.com/TweakerZ/Skyrim-Mod-Loader).
 
-## Disclaimer
+## What it does
 
-Yes.. AI was used in building this. The code and APKs are provided as-is, with
-no warranty. Review the code, keep backups of `Plugins.txt` and `loadorder.txt`,
-and use it at your own risk.
+- Sorts plugins with libloot 0.29.7, the engine behind desktop LOOT.
+- Downloads the Skyrim masterlist once a week and caches it.
+- Writes `Plugins.txt` (active plugins) and `loadorder.txt` (full order) in
+  place, with plain plugin names and no `*` prefix.
+- Finds `save/AppData/Local/Skyrim` inside the selected port folder.
+- Reports the sort: LOOT messages, warnings, unreadable plugins and the final
+  order.
 
-The app asks for:
+## Requirements
 
-1. the game (Skyrim Legendary Edition),
-2. the port root folder (the folder containing `Data`),
-3. `Plugins.txt`, and
-4. `loadorder.txt`.
+- A Skyrim Legendary Edition static Android port.
+- An arm64-v8a device running Android 7.0 (API 24) or newer.
+- All-files access. libloot reads and writes real paths, not SAF URIs.
+- Network access on the first sort, to fetch the masterlist.
 
-It then provides two actions:
+## Usage
 
-- **LOOT Sort** — sorts the plugin list with the real libloot engine and writes
-  the result back to both text files.
-- **LOOT Logs** — shows the last sort report, including LOOT messages,
-  warnings, unreadable plugins, and the resulting order.
+1. Grant all-files access.
+2. Open the gear and pick the port folder, the one holding `Data`. Both text
+   files are detected under `save/AppData/Local/Skyrim`, or picked by hand.
+3. Tap LOOT Sort. The files are rewritten in place and `.lootbak` copies are
+   kept.
+4. Tap LOOT Logs for the last report.
 
-## Skyrim LE layout
+## Building
 
-[Skyrim Mod Loader](https://github.com/TweakerZ/Skyrim-Mod-Loader) and the
-static port conventionally use:
-
-```
-<port>/
-  Data/
-    Skyrim.esm
-    Update.esm
-    ...
-  save/AppData/Local/Skyrim/
-    Plugins.txt
-    loadorder.txt
-```
-
-The app auto-detects `save/AppData/Local/Skyrim` after the port folder is
-selected. It writes plain plugin names, one per line, with no `*` prefix, to
-match Skyrim Mod Loader. `Plugins.txt` contains active plugins only;
-`loadorder.txt` contains the complete order.
-
-## Why all-files access is required
-
-libloot is a native Rust library. It needs real filesystem paths, not Android
-Storage Access Framework `content://` URIs, so the app requests
-`MANAGE_EXTERNAL_STORAGE` (Android 11+) or legacy read/write permission. The
-system folder picker is still used, and the app maps the chosen tree back to a
-real path. If a picker uses a provider that cannot be mapped, the app asks for
-the path directly.
-
-## How it works
-
-```
-MainActivity (Kotlin)
-  ├─ selects paths, reads/writes Plugins.txt and loadorder.txt
-  ├─ downloads and caches the LOOT masterlist
-  └─ LootBridge
-       └─ Chaquopy → loot_android.py → libloot Python module (Rust/PyO3)
-```
-
-`loot_android.py` opens a `loot.Game` for Skyrim, loads the cached masterlist
-(and `userlist.yaml` if present), loads plugin headers from `Data`, sorts all
-installed plugins, and returns JSON.
-
-## Build
-
-### Requirements
-
-- JDK 17
-- Android SDK with platform 34
-- Rust with the `aarch64-linux-android` target
-- Python 3.13 on the build machine (Chaquopy uses it for build tooling)
-- `cibuildwheel` (only needed to rebuild the libloot wheel)
-- The shared design system at `../skyrim-suite-ui`. `app/build.gradle` adds
-  `../skyrim-suite-ui/src/main/kotlin` to the Kotlin source set, so a clone
-  needs that directory next to this repository to compile.
-
-### Rebuild the libloot Android wheel
-
-Chaquopy cannot install the PyPI `libloot` package directly: it is a native
-extension and has no Android wheel. Build one with:
+You need JDK 17, Android SDK platform 34, Python 3.13, and a checkout of
+`skyrim-suite-ui` in `../skyrim-suite-ui`. `app/build.gradle` adds that
+directory to the Kotlin source set, so the build fails without it.
 
 ```sh
-./scripts/build-libloot-wheel.sh
-```
-
-The wheel is written to `app/src/main/wheels/` and is picked up by
-`app/build.gradle` via `--find-links`.
-
-### Build the APK
-
-```sh
-export JAVA_HOME=/path/to/jdk-17
-export ANDROID_HOME=/path/to/android-sdk
-# Chaquopy requires a build-time Python matching the app's Python 3.13. If the
-# host default python3 is a different minor version, point at a 3.13 interpreter:
+source ~/.android-builds/env.sh   # or set JAVA_HOME and ANDROID_HOME yourself
 export LOOT_BUILD_PYTHON=/path/to/python3.13
-./gradlew assembleDebug
+./gradlew assembleRelease
 ```
 
-The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
+Chaquopy installs the prebuilt libloot wheel from `app/src/main/wheels`.
+`scripts/build-libloot-wheel.sh` rebuilds it with cibuildwheel, Rust and the
+`aarch64-linux-android` target.
 
-## Masterlist
+## Layout
 
-The app downloads the Skyrim masterlist from the `v0.29` branch of
-`loot/skyrim` and caches it for a week. The `master` branch is not used because
-its current contents contain constructs that libloot 0.29 rejects. Keep the
-download branch in step with the bundled libloot version.
+```
+app/src/main/kotlin/com/lootandroid   UI, sorting flow, storage mapping
+app/src/main/python/loot_android.py   libloot wrapper called through Chaquopy
+app/src/main/wheels                   libloot Android wheel for Python 3.13
+app/src/main/res                      theme, strings, launcher icon
+scripts/build-libloot-wheel.sh        wheel rebuild script
+```
 
-## Current limitations
+## Credits
 
-- Skyrim Legendary Edition only. The Python bridge has a small game-type map
-  that can be extended for SE/AE later.
-- The first sort needs an internet connection to download the masterlist.
-- Plugins with unreadable headers are reported and left at the end of
-  `loadorder.txt`.
-- The app does not display or edit individual plugin metadata yet.
+LOOT and libloot are by the [LOOT team](https://github.com/loot).
+Skyrim Mod Loader is a fork of Droid Mod Loader by CyberShonk.
 
-## UI style
-
-The interface follows Skyrim Mod Loader's dark Material design: a near-black
-background, raised surface cards, rounded buttons, and the Nordic accent
-palette. It is built with Jetpack Compose using the shared component set in
-`../skyrim-suite-ui`. The launcher icon is an adaptive icon with background,
-foreground, and monochrome layers.
+Yes, AI was used in building this.
