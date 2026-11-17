@@ -10,3 +10,7 @@ local.properties
 # Python
 __pycache__/
 *.pyc
+
+# Build outputs
+*.apk
+*.aab
