@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">LOOT Android</string>
+    <string name="app_name">Loot</string>
     <string name="app_subtitle">Skyrim Legendary Edition · Skyrim Mod Loader</string>
 
     <!-- Storage -->
