@@ -18,10 +18,12 @@ import com.skyrimsuite.ui.SuiteChipTone
 import com.skyrimsuite.ui.SuiteDetailRow
 import com.skyrimsuite.ui.SuiteEmptyState
 import com.skyrimsuite.ui.SuiteLogCard
+import com.skyrimsuite.ui.SuiteLogDialog
 import com.skyrimsuite.ui.SuitePathRow
 import com.skyrimsuite.ui.SuitePermissionNotice
 import com.skyrimsuite.ui.SuiteScreen
 import com.skyrimsuite.ui.SuiteSettingsSheet
+import com.skyrimsuite.ui.SuiteTextInputDialog
 
 /**
  * LOOT screen. Everything that is not an action lives behind the gear: the
@@ -47,7 +49,13 @@ fun LootScreen(
     onGrantStorage: () -> Unit,
     onSort: () -> Unit,
     onViewLogs: () -> Unit,
-    onToggleLog: () -> Unit
+    onToggleLog: () -> Unit,
+    logDialogText: String?,
+    onLogDialogDismiss: () -> Unit,
+    pathPromptTitle: String?,
+    pathPromptInitial: String,
+    onPathPromptConfirm: (String) -> Unit,
+    onPathPromptDismiss: () -> Unit
 ) {
     var showSettings by rememberSaveable { mutableStateOf(false) }
     val configured = gameFolder != null && pluginsPath != null && loadorderPath != null
@@ -192,5 +200,28 @@ fun LootScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+
+    logDialogText?.let { log ->
+        SuiteLogDialog(
+            title = stringResource(R.string.dialog_logs_title),
+            log = log,
+            closeLabel = stringResource(R.string.dialog_close),
+            onDismiss = onLogDialogDismiss,
+            emptyText = stringResource(R.string.logs_empty)
+        )
+    }
+
+    if (pathPromptTitle != null) {
+        SuiteTextInputDialog(
+            title = pathPromptTitle,
+            body = stringResource(R.string.dialog_path_message),
+            initialValue = pathPromptInitial,
+            confirmLabel = stringResource(R.string.dialog_ok),
+            dismissLabel = stringResource(R.string.dialog_cancel),
+            hint = stringResource(R.string.dialog_path_hint),
+            onConfirm = onPathPromptConfirm,
+            onDismiss = onPathPromptDismiss
+        )
     }
 }

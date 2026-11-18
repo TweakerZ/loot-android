@@ -1,19 +1,11 @@
 package com.lootandroid
 
 import android.content.Intent
-import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
-import android.text.InputType
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ScrollView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,8 +42,13 @@ class MainActivity : AppCompatActivity() {
     private var busy by mutableStateOf(false)
     private var logText by mutableStateOf("")
     private var logExpanded by mutableStateOf(false)
+    private var logDialogText by mutableStateOf<String?>(null)
+    private var pathPromptKind by mutableStateOf<PathPromptKind?>(null)
+    private var pathPromptInitial by mutableStateOf("")
 
     private enum class FileTarget { PLUGINS, LOADORDER }
+
+    private enum class PathPromptKind { GAME_FOLDER, PLUGINS, LOADORDER }
 
     private val directoryPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -59,11 +56,7 @@ class MainActivity : AppCompatActivity() {
                 persistPermission(treeUri)
                 val folder = StoragePaths.resolve(this, treeUri)
                 if (folder == null) {
-                    promptForPath(
-                        getString(R.string.label_game_folder),
-                        suggestPath(),
-                        onAccepted = { path -> applyGameFolder(File(path)) }
-                    )
+                    showPathPrompt(PathPromptKind.GAME_FOLDER)
                 } else {
                     applyGameFolder(folder)
                 }
@@ -78,10 +71,11 @@ class MainActivity : AppCompatActivity() {
                 pendingFileTarget = null
                 val file = StoragePaths.resolve(this, documentUri)
                 if (file == null) {
-                    promptForPath(
-                        labelFor(target),
-                        suggestPath(target),
-                        onAccepted = { path -> applyFile(target, File(path)) }
+                    showPathPrompt(
+                        when (target) {
+                            FileTarget.PLUGINS -> PathPromptKind.PLUGINS
+                            FileTarget.LOADORDER -> PathPromptKind.LOADORDER
+                        }
                     )
                 } else {
                     applyFile(target, file)
@@ -120,7 +114,13 @@ class MainActivity : AppCompatActivity() {
                     onGrantStorage = { StoragePaths.requestAllFilesAccess(this) },
                     onSort = { startSort() },
                     onViewLogs = { showLogs() },
-                    onToggleLog = { logExpanded = !logExpanded }
+                    onToggleLog = { logExpanded = !logExpanded },
+                    logDialogText = logDialogText,
+                    onLogDialogDismiss = { logDialogText = null },
+                    pathPromptTitle = pathPromptKind?.let(::pathPromptTitle),
+                    pathPromptInitial = pathPromptInitial,
+                    onPathPromptConfirm = { path -> confirmPathPrompt(path) },
+                    onPathPromptDismiss = { pathPromptKind = null }
                 )
             }
         }
@@ -576,29 +576,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val text = TextView(this).apply {
-            typeface = Typeface.MONOSPACE
-            textSize = 11f
-            setTextIsSelectable(true)
-            setPadding(24, 16, 24, 16)
-            this.text = log
-        }
-
-        val scroll = ScrollView(this).apply {
-            addView(
-                text,
-                ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_logs_title)
-            .setView(scroll)
-            .setPositiveButton(R.string.dialog_close, null)
-            .show()
+        logDialogText = log
     }
 
     private fun saveLastLog(log: String) {
@@ -614,35 +592,32 @@ class MainActivity : AppCompatActivity() {
 
     /* ---------- Manual path fallback ---------- */
 
-    private fun promptForPath(title: String, initial: String, onAccepted: (String) -> Unit) {
-        val editText = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            setSingleLine(false)
-            setText(initial)
-            hint = getString(R.string.dialog_path_hint)
+    private fun showPathPrompt(kind: PathPromptKind) {
+        pathPromptInitial = when (kind) {
+            PathPromptKind.GAME_FOLDER -> suggestPath()
+            PathPromptKind.PLUGINS -> suggestPath(FileTarget.PLUGINS)
+            PathPromptKind.LOADORDER -> suggestPath(FileTarget.LOADORDER)
         }
+        pathPromptKind = kind
+    }
 
-        val container = FrameLayout(this).apply {
-            setPadding(24, 8, 24, 0)
-            addView(
-                editText,
-                FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-                )
-            )
+    private fun pathPromptTitle(kind: PathPromptKind): String = getString(
+        when (kind) {
+            PathPromptKind.GAME_FOLDER -> R.string.label_game_folder
+            PathPromptKind.PLUGINS -> R.string.label_plugins_file
+            PathPromptKind.LOADORDER -> R.string.label_loadorder_file
         }
+    )
 
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(R.string.dialog_path_message)
-            .setView(container)
-            .setPositiveButton(R.string.dialog_ok) { _, _ ->
-                val path = editText.text.toString().trim()
-                if (path.isNotEmpty()) onAccepted(path)
-            }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
+    private fun confirmPathPrompt(path: String) {
+        val kind = pathPromptKind ?: return
+        pathPromptKind = null
+        if (path.isBlank()) return
+        when (kind) {
+            PathPromptKind.GAME_FOLDER -> applyGameFolder(File(path))
+            PathPromptKind.PLUGINS -> applyFile(FileTarget.PLUGINS, File(path))
+            PathPromptKind.LOADORDER -> applyFile(FileTarget.LOADORDER, File(path))
+        }
     }
 
     private fun suggestPath(): String = "/storage/emulated/0/"

@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace 'com.lootandroid'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId 'com.skyrimandroid.loot'
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName '0.1.3'
+        versionCode 4
+        versionName '0.1.4'
 
         ndk {
             // libloot is cross-compiled for 64-bit ARM Android only.
@@ -79,7 +79,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
 
     // Compose UI stack. The BOM pins every Compose module version.
-    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation platform('androidx.compose:compose-bom:2024.09.00')
     implementation 'androidx.activity:activity-compose:1.9.0'
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-graphics'
