@@ -29,6 +29,18 @@ android {
         }
     }
 
+    // Two builds of the same app. "iconless" has no launcher entry and is
+    // started by Skyrim Mod Loader; "launcher" adds the drawer icon.
+    flavorDimensions 'launcher'
+    productFlavors {
+        iconless {
+            dimension 'launcher'
+        }
+        launcher {
+            dimension 'launcher'
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

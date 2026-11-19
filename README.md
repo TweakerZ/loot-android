@@ -31,15 +31,24 @@ Companion app for [Skyrim Mod Loader](https://github.com/TweakerZ/Skyrim-Mod-Loa
 
 ## Building
 
-You need JDK 17, Android SDK platform 34, Python 3.13, and a checkout of
+You need JDK 17, Android SDK platform 35, Python 3.13, and a checkout of
 `skyrim-suite-ui` in `../skyrim-suite-ui`. `app/build.gradle` adds that
 directory to the Kotlin source set, so the build fails without it.
 
 ```sh
 source ~/.android-builds/env.sh   # or set JAVA_HOME and ANDROID_HOME yourself
 export LOOT_BUILD_PYTHON=/path/to/python3.13
-./gradlew assembleRelease
+./gradlew assembleIconlessRelease assembleLauncherRelease
 ```
+
+Two flavors build the same app:
+
+| Flavor | Drawer icon | Output |
+| --- | --- | --- |
+| `iconless` | no | `app/build/outputs/apk/iconless/release/` |
+| `launcher` | yes | `app/build/outputs/apk/launcher/release/` |
+
+The `iconless` build is the one Skyrim Mod Loader starts by component name.
 
 Chaquopy installs the prebuilt libloot wheel from `app/src/main/wheels`.
 `scripts/build-libloot-wheel.sh` rebuilds it with cibuildwheel, Rust and the
@@ -52,6 +61,7 @@ app/src/main/kotlin/com/lootandroid   UI, sorting flow, storage mapping
 app/src/main/python/loot_android.py   libloot wrapper called through Chaquopy
 app/src/main/wheels                   libloot Android wheel for Python 3.13
 app/src/main/res                      theme, strings, launcher icon
+app/src/launcher/AndroidManifest.xml  drawer entry for the launcher flavor
 scripts/build-libloot-wheel.sh        wheel rebuild script
 ```
 
